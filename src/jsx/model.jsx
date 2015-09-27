@@ -31,7 +31,7 @@ var data = [
     }
 ];
 
-data.selectGame = function(){
+var selectGame = function(){
     var books = _.shuffle(this.reduce(function(collection, element){
         return collection.concat(element.books);
     }, [])).slice(0, 4);
@@ -52,6 +52,7 @@ data.selectGame = function(){
         }
     }
 };
+data.selecttGame = selectGame;
 
 var Quiz = React.createClass({
     propTypes: {
@@ -72,6 +73,9 @@ var Quiz = React.createClass({
     },
     handleContinue: function(){
         this.setState(this.getInitialState())
+    },
+    handleAddGame: function(){
+        routie('add');
     },
     render: function(){
         var continueSection = this.state.showContinue ?
@@ -96,6 +100,11 @@ var Quiz = React.createClass({
                     </div>
                 </div>
                 {continueSection}
+                <div className="row">
+                    <div className="col-md-12">
+                        <button onClick={this.handleAddGame} className="btn btn-block btn-primary">Add Game</button>
+                    </div>
+                </div>
             </div>
         )
     }
@@ -113,4 +122,73 @@ var Book = React.createClass({
     }
 });
 
-React.render(<Quiz data={data}/>, document.getElementById('container'));
+function getRefs(component){
+    var result = {};
+    Object.keys(component.refs).forEach(function(refName){
+        result[refName] = component.refs[refName].getDOMNode().value;
+    });
+    return result;
+}
+
+var AddGameForm = React.createClass({
+    propTypes: {
+        onGameFormSubmitted: React.PropTypes.func.isRequired
+    },
+    handleSubmit: function(){
+        this.props.onGameFormSubmitted(getRefs(this));
+        return false;
+    },
+    render: function(){
+        return(
+            <div className="row">
+                <div className="col-md-12">
+                    <h1>Add Game</h1>
+
+                    <form role="form" onSubmit={this.handleSubmit}>
+                        <div className="form-group">
+                            <label>Image URL</label>
+                            <input ref="imageUrl" type="text" className="form-control"/>
+                        </div>
+                        <div className="form-group">
+                            <label>Answer 1</label>
+                            <input ref="answer1" type="text" className="form-control"/>
+                        </div>
+                        <div className="form-group">
+                            <label>Answer 2</label>
+                            <input ref="answer2" type="text" className="form-control"/>
+                        </div>
+                        <div className="form-group">
+                            <label>Answer 3</label>
+                            <input ref="answer3" type="text" className="form-control"/>
+                        </div>
+                        <div className="form-group">
+                            <label>Answer 4</label>
+                            <input ref="answer4" type="text" className="form-control"/>
+                        </div>
+                        <div className="form-group">
+                            <input type="submit" value="Save Game" className="btn btn-success"></input>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        );
+    }
+});
+
+function handleAddGameFormSubmitted(data){
+    var quizData = [{
+        imgUrl: data.imageUrl,
+        books: [data.answer1, data.answer2, data.answer3, data.answer4]
+    }];
+    quizData.selectGame = selectGame;
+    React.render(<Quiz data={quizData}/>, document.getElementById('container'));
+}
+
+routie({
+   '': function(){
+       React.render(<Quiz data={data}/>, document.getElementById('container'));
+   },
+   'add': function(){
+       React.render(<AddGameForm onGameFormSubmitted={handleAddGameFormSubmitted}/>, document.getElementById('container'));
+   }
+});
